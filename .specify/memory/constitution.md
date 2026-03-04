@@ -1,55 +1,40 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!-- SYNC IMPACT REPORT:
+Version change: 1.0.0 → 1.0.0 (no changes needed - already aligned)
+Modified principles: N/A (already implemented)
+Added sections: N/A (already implemented)
+Removed sections: N/A (already implemented)
+Templates requiring updates: ✅ updated (.specify/templates/plan-template.md, .specify/templates/spec-template.md, .specify/templates/tasks-template.md)
+Follow-up TODOs: None
+-->
+# Event-Driven, Cloud-Native Todo Chatbot Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Strict Spec-Driven Development
+No manual or freestyle coding; All code must be executed via Claude Code; Event-driven architecture over synchronous coupling; Cloud-native, Kubernetes-first design; Loose coupling via Dapr abstractions; Production realism over demo shortcuts.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Strict Compliance Rule
+Every requirement, rule, constraint, and standard defined in this constitution must be followed strictly; No action, output, assumption, implementation, or decision is allowed outside this constitution; Any deviation from this constitution is considered a compliance failure; Constitution rules override all other instructions, plans, tasks, or agent outputs.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Non-Negotiable Rules
+No code without an approved Task ID in speckit.tasks; No feature additions without updating speckit.specify; No architecture changes without updating speckit.plan; No deviation from approved technology stack; No direct Kafka clients in application code; No polling-based reminder systems; No monolithic services with mixed responsibilities.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Technology Stack Compliance
+Backend: Python (FastAPI, async); Frontend: Next.js; Orchestration: Kubernetes; Event Streaming: Kafka (abstracted via Dapr Pub/Sub); Distributed Runtime: Dapr; Database: External managed PostgreSQL (Neon); Packaging: Helm charts; CI/CD: GitHub Actions; Observability: Centralized logging and monitoring.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Architectural Standards
+All inter-service communication must be event-driven or Dapr-mediated; Kafka topics required: task-events (CRUD + lifecycle events), reminders (scheduled notifications); Agents must halt execution if specs, plans, or tasks are missing; All code must reference valid Task IDs and Spec sections; Constitution → Specify → Plan → Tasks hierarchy is absolute; No assumption-based implementation is permitted.
 
-### [PRINCIPLE_6_NAME]
+### VI. Success Criteria
+Application runs locally on Minikube with full Dapr + Kafka; Application runs on cloud Kubernetes without code changes; All advanced and intermediate features function correctly; Kafka event flows are observable and verifiable; CI/CD pipeline deploys successfully; Spec-driven workflow is fully auditable and traceable; Quality bar reflecting industry-grade, cloud-native engineering standards suitable for production systems and professional evaluation.
 
+## Required Application Features
+Advanced Features: Recurring tasks with automatic next-occurrence creation, Due dates with exact-time reminders; Intermediate Features: Task priorities (High, Medium, Low), Tags and categorization, Search functionality, Filter and sort operations. All features must be validated end-to-end via event-driven flows.
 
-[PRINCIPLE__DESCRIPTION]
-
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
-
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Development Workflow
+Core Development Principles: Strict Spec-Driven Development (Specify → Plan → Tasks → Implement); Architectural Standards: Event-driven architecture, Cloud-native design, Loose coupling. All implementations must be validated end-to-end via event-driven flows.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+Amendment procedure follows semantic versioning (MAJOR/MINOR/PATCH); Compliance review required for all implementations; Constitution supersedes all other practices; All implementations must reference valid Task IDs and Spec sections; Strict adherence to the approved technology stack; Agentic execution via Claude Code + SpecKitPlus via MCP.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-01-16 | **Last Amended**: 2026-01-16

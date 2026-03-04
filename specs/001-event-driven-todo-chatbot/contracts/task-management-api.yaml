@@ -1,0 +1,516 @@
+openapi: 3.0.3
+info:
+  title: Task Management API
+  description: API for managing tasks in the event-driven todo chatbot system
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.todo-chatbot.example.com
+    description: Production server
+
+paths:
+  /api/v1/tasks:
+    get:
+      summary: Get all tasks for a user
+      description: Retrieve a paginated list of tasks for the authenticated user
+      parameters:
+        - name: status
+          in: query
+          description: Filter tasks by status
+          required: false
+          schema:
+            type: string
+            enum: [TO_DO, IN_PROGRESS, DONE]
+        - name: priority
+          in: query
+          description: Filter tasks by priority
+          required: false
+          schema:
+            type: string
+            enum: [HIGH, MEDIUM, LOW]
+        - name: tag
+          in: query
+          description: Filter tasks by tag
+          required: false
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search tasks by title or description
+          required: false
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: Field to sort by
+          required: false
+          schema:
+            type: string
+            enum: [dueDate, createdAt, priority, title]
+        - name: sortOrder
+          in: query
+          description: Sort order (ascending or descending)
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response with tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '500':
+          description: Internal server error
+    post:
+      summary: Create a new task
+      description: Create a new task for the authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                description:
+                  type: string
+                  maxLength: 2000
+                dueDate:
+                  type: string
+                  format: date-time
+                  description: ISO 8601 formatted datetime
+                priority:
+                  type: string
+                  enum: [HIGH, MEDIUM, LOW]
+                  default: MEDIUM
+                status:
+                  type: string
+                  enum: [TO_DO, IN_PROGRESS, DONE]
+                  default: TO_DO
+                tags:
+                  type: array
+                  items:
+                    type: string
+                    maxLength: 50
+                  maxItems: 5
+                recurrencePattern:
+                  $ref: '#/components/schemas/RecurrencePattern'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Bad request - Invalid input data
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '500':
+          description: Internal server error
+
+  /api/v1/tasks/{taskId}:
+    get:
+      summary: Get a specific task
+      description: Retrieve a specific task by its ID
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+    put:
+      summary: Update a task
+      description: Update an existing task's properties
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                description:
+                  type: string
+                  maxLength: 2000
+                dueDate:
+                  type: string
+                  format: date-time
+                priority:
+                  type: string
+                  enum: [HIGH, MEDIUM, LOW]
+                status:
+                  type: string
+                  enum: [TO_DO, IN_PROGRESS, DONE]
+                tags:
+                  type: array
+                  items:
+                    type: string
+                    maxLength: 50
+                  maxItems: 5
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Bad request - Invalid input data
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Delete a task
+      description: Permanently delete a task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Task deleted successfully
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+
+  /api/v1/recurring-tasks:
+    get:
+      summary: Get all recurring tasks for a user
+      description: Retrieve a list of recurring task templates for the authenticated user
+      responses:
+        '200':
+          description: Successful response with recurring tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recurringTasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RecurringTask'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '500':
+          description: Internal server error
+    post:
+      summary: Create a recurring task
+      description: Create a new recurring task template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecurringTaskRequest'
+      responses:
+        '201':
+          description: Recurring task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecurringTask'
+        '400':
+          description: Bad request - Invalid input data
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '500':
+          description: Internal server error
+
+  /api/v1/chat/process:
+    post:
+      summary: Process chat command
+      description: Process a natural language chat command from the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  description: The natural language command from the user
+      responses:
+        '200':
+          description: Command processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    description: The chatbot's response to the user
+                  action:
+                    type: string
+                    description: The action taken by the system
+                  data:
+                    type: object
+                    description: Additional data related to the action
+        '400':
+          description: Bad request - Unable to parse the command
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - taskId
+        - userId
+        - title
+        - priority
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        dueDate:
+          type: string
+          format: date-time
+        priority:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        status:
+          type: string
+          enum: [TO_DO, IN_PROGRESS, DONE]
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          maxItems: 5
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        recurrencePattern:
+          $ref: '#/components/schemas/RecurrencePattern'
+
+    RecurrencePattern:
+      type: object
+      required:
+        - type
+        - interval
+      properties:
+        type:
+          type: string
+          enum: [DAILY, WEEKLY, MONTHLY, YEARLY]
+        interval:
+          type: integer
+          minimum: 1
+        daysOfWeek:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 6
+          description: 0=Sunday, 1=Monday, ..., 6=Saturday
+        dayOfMonth:
+          type: integer
+          minimum: 1
+          maximum: 31
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        startTime:
+          type: string
+          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$'
+          description: Time in HH:MM format
+
+    RecurringTask:
+      type: object
+      required:
+        - recurringTaskId
+        - userId
+        - title
+        - priority
+        - pattern
+        - isActive
+        - createdAt
+        - updatedAt
+      properties:
+        recurringTaskId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        priority:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        pattern:
+          $ref: '#/components/schemas/RecurrencePattern'
+        isActive:
+          type: boolean
+          default: true
+        endDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateRecurringTaskRequest:
+      type: object
+      required:
+        - title
+        - priority
+        - pattern
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        priority:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+          default: MEDIUM
+        pattern:
+          $ref: '#/components/schemas/RecurrencePattern'
+        isActive:
+          type: boolean
+          default: true
+        endDate:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

@@ -1,0 +1,181 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: todo_chatbot_postgres
+    environment:
+      POSTGRES_DB: todochatbot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: todo_chatbot_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  # Kafka Server
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: todo_chatbot_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+
+  # Task Management Service
+  task-service:
+    build:
+      context: .
+      dockerfile: src/services/task_service/Dockerfile
+    container_name: todo_chatbot_task_service
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:example@postgres:5432/todochatbot
+      - KAFKA_BROKER=kafka:9092
+      - APP_ENV=development
+    volumes:
+      - ./src:/app/src
+    command: ["python", "-m", "src.services.task_service.app"]
+
+  # Recurring Task Service
+  recurring-task-service:
+    build:
+      context: .
+      dockerfile: src/services/recurring_task_service/Dockerfile
+    container_name: todo_chatbot_recurring_task_service
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql://postgres:example@postgres:5432/todochatbot
+      - KAFKA_BROKER=kafka:9092
+      - APP_ENV=development
+    volumes:
+      - ./src:/app/src
+    command: ["python", "-m", "src.services.recurring_task_service.app"]
+
+  # Reminder Service
+  reminder-service:
+    build:
+      context: .
+      dockerfile: src/services/reminder_service/Dockerfile
+    container_name: todo_chatbot_reminder_service
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql://postgres:example@postgres:5432/todochatbot
+      - KAFKA_BROKER=kafka:9092
+      - APP_ENV=development
+    volumes:
+      - ./src:/app/src
+    command: ["python", "-m", "src.services.reminder_service.app"]
+
+  # Search Service
+  search-service:
+    build:
+      context: .
+      dockerfile: src/services/search_service/Dockerfile
+    container_name: todo_chatbot_search_service
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql://postgres:example@postgres:5432/todochatbot
+      - KAFKA_BROKER=kafka:9092
+      - APP_ENV=development
+    volumes:
+      - ./src:/app/src
+    command: ["python", "-m", "src.services.search_service.app"]
+
+  # Chat Interface Service
+  chat-service:
+    build:
+      context: .
+      dockerfile: src/chat/chat_service/Dockerfile
+    container_name: todo_chatbot_chat_service
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - "8005:8005"
+    environment:
+      - DATABASE_URL=postgresql://postgres:example@postgres:5432/todochatbot
+      - KAFKA_BROKER=kafka:9092
+      - APP_ENV=development
+    volumes:
+      - ./src:/app/src
+    command: ["python", "-m", "src.chat.chat_service.app"]
+
+  # User Management Service
+  user-service:
+    build:
+      context: .
+      dockerfile: src/services/user_service/Dockerfile
+    container_name: todo_chatbot_user_service
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - "8006:8006"
+    environment:
+      - DATABASE_URL=postgresql://postgres:example@postgres:5432/todochatbot
+      - KAFKA_BROKER=kafka:9092
+      - APP_ENV=development
+    volumes:
+      - ./src:/app/src
+    command: ["python", "-m", "src.services.user_service.app"]
+
+  # Frontend Service
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: todo_chatbot_frontend
+    depends_on:
+      - task-service
+      - user-service
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8001
+      - APP_ENV=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: ["npm", "run", "dev"]
+
+volumes:
+  postgres_data:

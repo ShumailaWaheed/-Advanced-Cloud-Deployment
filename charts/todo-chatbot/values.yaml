@@ -1,0 +1,59 @@
+global:
+  environment: local
+  imagePullPolicy: IfNotPresent
+
+services:
+  task:
+    name: task-service
+    image: todo-chatbot/task-service
+    tag: latest
+    port: 8000
+    replicas: 1
+  recurringTask:
+    name: recurring-task-service
+    image: todo-chatbot/recurring-task-service
+    tag: latest
+    port: 8000
+    replicas: 1
+  reminder:
+    name: reminder-service
+    image: todo-chatbot/reminder-service
+    tag: latest
+    port: 8000
+    replicas: 1
+  search:
+    name: search-service
+    image: todo-chatbot/search-service
+    tag: latest
+    port: 8000
+    replicas: 1
+  chat:
+    name: chat-service
+    image: todo-chatbot/chat-service
+    tag: latest
+    port: 8000
+    replicas: 1
+  user:
+    name: user-service
+    image: todo-chatbot/user-service
+    tag: latest
+    port: 8000
+    replicas: 1
+  frontend:
+    name: frontend
+    image: todo-chatbot/frontend
+    tag: latest
+    port: 3000
+    replicas: 1
+
+postgresql:
+  host: ""
+  port: 5432
+  database: todochatbot
+  user: postgres
+
+kafka:
+  brokers: kafka-kafka-brokers.kafka.svc.cluster.local:9092
+
+jwt:
+  secretKey: ""

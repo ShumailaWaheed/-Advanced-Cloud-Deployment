@@ -1,0 +1,14 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: todo-chatbot-config
+spec:
+  tracing:
+    samplingRate: "0.1"
+  metric:
+    enabled: true
+  logging:
+    apiLogging:
+      enabled: false
+  mtls:
+    enabled: true

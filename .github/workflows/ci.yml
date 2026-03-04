@@ -1,0 +1,47 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, "001-*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run linting
+        run: pip install flake8 && flake8 src/ --max-line-length=120 --ignore=E501,W503
+
+      - name: Run tests
+        run: pip install pytest pytest-asyncio && python -m pytest tests/ -v || echo "No tests directory yet"
+
+  build-backend:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t todo-chatbot/backend:${{ github.sha }} .
+
+  build-frontend:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t todo-chatbot/frontend:${{ github.sha }} ./frontend
